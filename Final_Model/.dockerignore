@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+.git/
+.DS_Store
+.env
+Dataset/  # Ignore the dataset directory (if not needed for deployment)
+Final_Model/all_cities_lstm_model_v3.h5  # Include only if model is dynamically generated

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inflation Prediction</title>
+</head>
+<body>
+    <h1>Inflation Prediction</h1>
+
+    <form action="/predict" method="post">
+        <label for="city">City:</label>
+        <!-- Change the input type to text -->
+        <input type="text" name="city" required><br>
+    
+        <label for="goal">Financial Goal ($):</label>
+        <input type="number" name="goal" required><br>
+    
+        <label for="income">Monthly Income ($):</label>
+        <input type="number" name="income" required><br>
+    
+        <label for="expenses">Monthly Expenses ($):</label>
+        <input type="number" name="expenses" required><br>
+    
+        <input type="submit" value="Predict">
+    </form>
+    
+</body>
+</html>

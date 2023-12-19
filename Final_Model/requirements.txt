@@ -1,0 +1,8 @@
+flask
+gunicorn
+tensorflow==2.5.0
+scikit-learn
+pandas
+numpy
+mysql-connector-python
+flask-sqlalchemy
