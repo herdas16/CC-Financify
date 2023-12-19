@@ -3,7 +3,6 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
-from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -69,10 +68,6 @@ def create_time_series(data, time_steps=1):
 time_steps = 12
 n_features = 2
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/predict', methods=['POST'])
 def predict():
     error = None
@@ -88,7 +83,6 @@ def predict():
         expenses = float(request.form['expenses'])
         historical_inflation = city_data[city]
 
-        
         # Simpan data ke MySQL
         save_to_mysql(city, goal, income, expenses)
 
@@ -118,14 +112,12 @@ def predict():
         years_to_goal, remaining_months = calculate_time_to_goal(goal, income, expenses, prediction)
 
         prediction = round(prediction * 100, 2)
-        
-    # Simpan data ke MySQL
-        save_result(prediction, trend, years_to_goal, remaining_months )
+
+        # Simpan data ke MySQL
+        save_result(prediction, trend, years_to_goal, remaining_months)
 
     except Exception as e:
         error = str(e)
-
-    
 
     return jsonify({
         "prediction": prediction,
@@ -135,8 +127,6 @@ def predict():
             "remaining_months": remaining_months
         }
     })
-
-
 
 def calculate_time_to_goal(goal, income, expenses, savings):
     # Calculate monthly savings
@@ -151,18 +141,17 @@ def calculate_time_to_goal(goal, income, expenses, savings):
 
     return years_to_goal, remaining_months
 
-
 def save_to_mysql(city, goal, income, expenses):
     try:
         # Membuka kursor
-        cursor = mysql.connection.cursor()
+        cursor = db.session.connection().cursor()
 
         # Menjalankan query INSERT
         cursor.execute('INSERT INTO predict (city, goal, income, expenses) VALUES (%s, %s, %s, %s)',
                        (city, goal, income, expenses))
 
         # Melakukan commit untuk menyimpan perubahan pada database
-        mysql.connection.commit()
+        db.session.commit()
 
         # Menutup kursor
         cursor.close()
@@ -172,20 +161,20 @@ def save_to_mysql(city, goal, income, expenses):
     except Exception as e:
         # Mengembalikan False jika ada kesalahan
         print(f"Error: {e}")
-        mysql.connection.rollback()  # Rollback perubahan jika terjadi kesalahan
+        db.session.rollback()  # Rollback perubahan jika terjadi kesalahan
         return False
 
 def save_result(prediction, trend, years_to_goal, remaining_months):
     try:
         # Membuka kursor
-        cursor = mysql.connection.cursor()
+        cursor = db.session.connection().cursor()
 
         # Menjalankan query INSERT
         cursor.execute('INSERT INTO result (prediction, trend, years_to_goal, remaining_months) VALUES (%s, %s, %s, %s)',
                        (prediction, trend, years_to_goal, remaining_months))
 
         # Melakukan commit untuk menyimpan perubahan pada database
-        mysql.connection.commit()
+        db.session.commit()
 
         # Menutup kursor
         cursor.close()
@@ -195,9 +184,8 @@ def save_result(prediction, trend, years_to_goal, remaining_months):
     except Exception as e:
         # Mengembalikan False jika ada kesalahan
         print(f"Error: {e}")
-        mysql.connection.rollback()  # Rollback perubahan jika terjadi kesalahan
+        db.session.rollback()  # Rollback perubahan jika terjadi kesalahan
         return False
-
 
 if __name__ == '__main__':
     app.run(debug=True)
