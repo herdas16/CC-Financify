@@ -1,5 +1,5 @@
 # Import necessary libraries
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import os
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
