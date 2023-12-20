@@ -10,8 +10,7 @@ WORKDIR $APP_HOME
 COPY . ./
 
 # Install dependencies untuk produksi.
-RUN pip install --no-cache-dir -r requirements.
-txt
+RUN pip install --no-cache-dir -r requirements.txt
 # Set env variables for Cloud Run
 ENV PORT 8080
 ENV HOST 0.0.0.0
