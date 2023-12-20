@@ -11,11 +11,13 @@ COPY . ./
 
 # Install dependencies untuk produksi.
 RUN pip install --no-cache-dir -r requirements.txt
+
 # Set env variables for Cloud Run
 ENV PORT 8080
 ENV HOST 0.0.0.0
 
 # Open port 5000
 EXPOSE 8080:8080
+
 # Run flask app
 CMD ["python","app.py", "gunicorn"]
