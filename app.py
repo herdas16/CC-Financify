@@ -186,6 +186,5 @@ def save_result(prediction, trend, years_to_goal, remaining_months):
         db.session.rollback()  # Rollback changes in case of a database error
         return False
 
-# Run the Flask app
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    app.run(debug=True)
