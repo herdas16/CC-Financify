@@ -1,5 +1,5 @@
 flask
-gunicorn
+gunicorn==20.1.0
 tensorflow==2.5.0
 scikit-learn
 pandas

@@ -13,7 +13,7 @@ COPY . ./
 # Install dependencies untuk produksi.
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8080
+EXPOSE 8000
 
-CMD ["gunicorn", "--bind", ":PORT", "--workers", "1", "--threads", "8", "--timeout", "0", "app:app"]
+CMD ["gunicorn", "--bind", :8000, "--workers", "1", "--threads", "8", "--timeout", "0", "app:app"]
 # Jalankan aplikasi
