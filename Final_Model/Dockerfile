@@ -19,5 +19,4 @@ ENV HOST 0.0.0.0
 # Open port 5000
 EXPOSE 8080:8080
 
-# Run flask app
-CMD ["python","app.py", "gunicorn"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
