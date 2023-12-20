@@ -1,22 +1,27 @@
-from flask import Flask, render_template, request, jsonify
+# Import necessary libraries
+from flask import Flask, request, jsonify
+import os
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy
 
+# Initialize Flask
 app = Flask(__name__)
 
-# Ganti informasi koneksi database sesuai dengan konfigurasi Google Cloud SQL Anda
-db_user = 'root'
-db_password = 'Financify123#'
-db_name = 'financify'
-cloud_sql_connection_name = 'capstone-project-406514:us-west4:financify'
+# Configuration for Database using environment variables
+db_user = os.getenv('DB_USER', 'root')
+db_password = os.getenv('DB_PASSWORD', 'Financify123#')
+db_name = os.getenv('DB_NAME', 'financify')
+cloud_sql_connection_name = os.getenv('CLOUD_SQL_CONNECTION_NAME', 'capstone-project-406514:us-west4:financify')
 
-# Ganti URI koneksi MySQL dengan URI koneksi MySQL untuk Google Cloud SQL
+# Configuration for Database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_user}:{db_password}@/{db_name}?unix_socket=/cloudsql/{cloud_sql_connection_name}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
 # Load the pre-trained Keras model
@@ -55,19 +60,15 @@ for city in df['City'].unique():
 # Combine data for all cities into a single time series
 all_cities_data = np.concatenate(list(city_data.values()))
 
-# Function to create time series sequences
-def create_time_series(data, time_steps=1):
-    X, y = [], []
-    for i in range(len(data) - time_steps + 1):
-        a = data[i:(i + time_steps), :]
-        X.append(a)
-        y.append(data[i + time_steps - 1, 0])  # Assuming 'Inflation' is in the first column
-    return np.array(X), np.array(y)
-
 # Hyperparameters
 time_steps = 12
 n_features = 2
 
+@app.route("/")
+def index():
+    return "Hello World!"
+
+# API endpoint for predictions
 @app.route('/predict', methods=['POST'])
 def predict():
     error = None
@@ -83,7 +84,7 @@ def predict():
         expenses = float(request.form['expenses'])
         historical_inflation = city_data[city]
 
-        # Simpan data ke MySQL
+        # Save data to MySQL
         save_to_mysql(city, goal, income, expenses)
 
         input_data = scaler.transform(historical_inflation[-time_steps:])
@@ -113,7 +114,7 @@ def predict():
 
         prediction = round(prediction * 100, 2)
 
-        # Simpan data ke MySQL
+        # Save result to MySQL
         save_result(prediction, trend, years_to_goal, remaining_months)
 
     except Exception as e:
@@ -128,6 +129,16 @@ def predict():
         }
     })
 
+# Function to create time series sequences
+def create_time_series(data, time_steps=1):
+    X, y = [], []
+    for i in range(len(data) - time_steps + 1):
+        a = data[i:(i + time_steps), :]
+        X.append(a)
+        y.append(data[i + time_steps - 1, 0])  # Assuming 'Inflation' is in the first column
+    return np.array(X), np.array(y)
+
+# Function to calculate time to reach a financial goal
 def calculate_time_to_goal(goal, income, expenses, savings):
     # Calculate monthly savings
     monthly_savings = income - expenses
@@ -141,51 +152,40 @@ def calculate_time_to_goal(goal, income, expenses, savings):
 
     return years_to_goal, remaining_months
 
+# Function to save data to MySQL
 def save_to_mysql(city, goal, income, expenses):
     try:
-        # Membuka kursor
-        cursor = db.session.connection().cursor()
+        # Run the INSERT query using db.session.execute
+        db.session.execute('INSERT INTO predict (city, goal, income, expenses) VALUES (%s, %s, %s, %s)',
+                           (city, goal, income, expenses))
 
-        # Menjalankan query INSERT
-        cursor.execute('INSERT INTO predict (city, goal, income, expenses) VALUES (%s, %s, %s, %s)',
-                       (city, goal, income, expenses))
-
-        # Melakukan commit untuk menyimpan perubahan pada database
+        # Commit the changes
         db.session.commit()
 
-        # Menutup kursor
-        cursor.close()
-
-        return True  # Berhasil menyimpan
+        return True  # Successfully saved
 
     except Exception as e:
-        # Mengembalikan False jika ada kesalahan
-        print(f"Error: {e}")
-        db.session.rollback()  # Rollback perubahan jika terjadi kesalahan
+        print(f"Database Error: {e}")
+        db.session.rollback()  # Rollback changes in case of a database error
         return False
 
+# Function to save prediction result to MySQL
 def save_result(prediction, trend, years_to_goal, remaining_months):
     try:
-        # Membuka kursor
-        cursor = db.session.connection().cursor()
+        # Run the INSERT query using db.session.execute
+        db.session.execute('INSERT INTO result (prediction, trend, years_to_goal, remaining_months) VALUES (%s, %s, %s, %s)',
+                           (prediction, trend, years_to_goal, remaining_months))
 
-        # Menjalankan query INSERT
-        cursor.execute('INSERT INTO result (prediction, trend, years_to_goal, remaining_months) VALUES (%s, %s, %s, %s)',
-                       (prediction, trend, years_to_goal, remaining_months))
-
-        # Melakukan commit untuk menyimpan perubahan pada database
+        # Commit the changes
         db.session.commit()
 
-        # Menutup kursor
-        cursor.close()
-
-        return True  # Berhasil menyimpan
+        return True  # Successfully saved
 
     except Exception as e:
-        # Mengembalikan False jika ada kesalahan
-        print(f"Error: {e}")
-        db.session.rollback()  # Rollback perubahan jika terjadi kesalahan
+        print(f"Database Error: {e}")
+        db.session.rollback()  # Rollback changes in case of a database error
         return False
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Run the Flask app
+if __name__ == "__main__": 
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)), debug=True)
