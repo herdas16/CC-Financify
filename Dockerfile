@@ -8,9 +8,9 @@ ENV PYTHONUNBUFFERED True
 ENV APP_HOME /app
 WORKDIR $APP_HOME
 
-COPY dataset dataset  
+COPY Dataset Dataset  
 # Salin folder dataset ke dalam image
-COPY final_model final_model  
+COPY Final_Model Final_Model  
 # Salin folder final_model ke dalam image
 
 COPY requirements.txt .  
@@ -21,5 +21,5 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["python", "final_model/app.py"]  
+CMD ["python", "Final_Model/app.py"]  
 # Jalankan aplikasi
