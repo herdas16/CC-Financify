@@ -25,13 +25,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Load the pre-trained Keras model
-model = load_model('./Final_Model/all_cities_lstm_model_v3.h5')
+model = load_model('all_cities_lstm_model_v3.h5')
 
 # Initialize scaler
 scaler = MinMaxScaler()
 
 # Load data
-file_path = './Dataset/inflasi_v3.csv'
+file_path = 'inflasi_v3.csv'
 df = pd.read_csv(file_path)
 
 # Select relevant columns
@@ -188,4 +188,4 @@ def save_result(prediction, trend, years_to_goal, remaining_months):
 
 # Run the Flask app
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)), debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

@@ -8,18 +8,12 @@ ENV PYTHONUNBUFFERED True
 ENV APP_HOME /app
 WORKDIR $APP_HOME
 
-COPY Dataset Dataset  
-# Salin folder dataset ke dalam image
-COPY Final_Model Final_Model  
-# Salin folder final_model ke dalam image
+COPY . ./
 
-COPY requirements.txt .  
-# Salin file requirements.txt ke dalam image
+# Install dependencies untuk produksi.
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install -r requirements.txt  
-# Install dependensi
+EXPOSE 8080
 
-EXPOSE 8000
-
-CMD ["python", "Final_Model/app.py"]  
+CMD ["gunicorn", "--bind", ":PORT", "--workers", "1", "--threads", "8", "--timeout", "0", "app:app"]
 # Jalankan aplikasi
