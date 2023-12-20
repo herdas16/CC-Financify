@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED True
 # Salin kode lokal ke image kontainer.
 ENV APP_HOME /app
 WORKDIR $APP_HOME
-COPY . .
+COPY . ./
 
 # Install dependencies untuk produksi.
 RUN pip install --no-cache-dir -r requirements.txt
